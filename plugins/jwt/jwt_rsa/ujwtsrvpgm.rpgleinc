@@ -1,0 +1,506 @@
+**free
+dcl-pr UJwtEcdsaKey likeds(DsKey_t) extproc('UJWTECDSAKEY');
+  SigningHashAlgorithm        int(10);
+end-pr UJwtEcdsaKey;
+
+dcl-pr UJwtPkaKey likeds(DsKey_t) ExtProc('UJWTPKAKEY');
+  AlgorithmType   char(5) const;
+  // public certificate location without extension
+  CertStmfpub     varchar(640) const;
+  // Private certificate location without extension
+  CertStmfprv     varchar(640) const;
+end-pr UJwtPkaKey;
+
+dcl-pr UJwtExtractkey Like(OutputkeyVar_t) ExtProc('UJWTEXTRACTKEY');
+  Dskey     likeds(DsKey_t);
+end-pr UJwtExtractkey;
+
+dcl-pr UJwtCrtAlgCtx char(8) extproc('UJWTCRTALGCTX');
+  SigningHashAlgorithm  int(10) const;
+  Algorithm             char(5) const;
+end-pr UJwtCrtAlgCtx;
+
+dcl-pr UJwtCalculateHMac varchar(32) ccsid(*utf8) extproc('UJWTCALCULATEHMAC');
+  WorkString      like(Utf8String_t) const;
+  SecretKey       varchar(100)  Ccsid(*utf8);
+  HashAlgInt      int(10) const;
+end-pr UJwtCalculateHMac;
+
+dcl-pr UJwtCrtKeyCtx char(8) extproc('UJWTCRTKEYCTX');
+  KeyString         varchar(4096) const;
+end-pr UJwtCrtKeyCtx;
+
+dcl-pr UJwtCreate likeds(DsJwt_t) extproc('UJWTCREATE');
+  Header          varchar(100)  Const Ccsid(*utf8);
+  Payload         like(Utf8String_t) const;
+  ValidUntil      timestamp;
+end-pr UJwtCreate;
+
+dcl-pr UJwtDecryptData like(OutputkeyVar_t) extproc('UJWTDECRYPTDATA');
+  EncryptedData                   like(Utf8String_t);
+  AlgorithmDescription            char(9) const;
+  AlgorithmDescriptionFormatName  char(8) const;
+  DsKeyD0200                      likeds(KeyD0200_t);
+end-pr UJwtDecryptData;
+
+dcl-pr UJwtEncodeBase64 likeds(DsEnc_t) extproc('UJWTENCODEBASE64');
+  StringToEncode    char(2400) ccsid(*hex) const;
+  StringToEncodeLen int(10) const;
+  B64Url            ind const;
+end-pr UJwtEncodeBase64;
+
+dcl-pr UJwtDecodeBase64 likeds(DsDec_t) extproc('UJWTDECODEBASE64');
+  StringToDecode    like(Utf8String_t) const;
+  StringToDecodeLen int(10) const;
+  B64Url            ind const;
+end-pr UJwtDecodeBase64;
+
+// jwt verify
+dcl-pr UJwtVerify int(10) extproc('UJWTVERIFY');
+  jwt        like(Utf8String_t) const;
+end-pr UJwtVerify;
+
+dcl-pr UJwtCheckUserIbmi  likeds(DsCheckUser_t) extproc('UJWTCHECKUSERIBMI');
+  User            char(10) const;
+  Password        char(128) const;
+end-pr UJwtCheckUserIbmi;
+
+// Calculate HMAC
+dcl-pr Qc3CalculateHMAC ExtProc('Qc3CalculateHMAC');
+  DatatoHash        char(32767) options(*varsize) const ccsid(*utf8); // Data to Hash
+  InputDataLen      int(10)     const;                   // Input Data Len
+  InputFormat       char(8)     const;                   // Input Format
+  AlgoDesc          int(10)     const;                   // Algo Desc
+  AlgoDescFormat    char(8)     const;                   // Algo Desc Format
+  KeyDesc           char(32767) options(*varsize) const; // Key  Desc
+  KeyDescFormat     char(8)     const;                   // Key  Desc Format
+  CryptoSP          char(1)     const;                   // CryptoSP
+  CryptoDev         char(10)    const;                   // CryptoDev
+  HMAC              char(32767) options(*varsize);       // HMAC
+  ApiError          char(32767) options(*varsize);       // ErrorCode
+end-pr Qc3CalculateHMAC;
+
+// Generate
+dcl-pr Qc3GenPRNs extproc('Qc3GenPRNs');
+  PRNData           char(32767) options(*varsize);
+  PRNDataLen        int(10) const;
+  PRNType           char(1) const;
+  PRNParity         char(1) const;
+  ApiError          char(32767) options(*varsize);       // ErrorCode
+end-pr Qc3GenPRNs;
+
+// Convert to Hex
+dcl-pr cvthc ExtProc('cvthc');
+  target      char(32767) options(*varsize);
+  src_bits    char(32767) options(*varsize) const;
+  tgt_length  int(10) value;
+eND-pR;
+
+///
+// Retreive password criptata
+//
+///
+dcl-pr RtvEncUsrPwd ExtPgm('QSYRUPWD');
+  RcvVar          char(3018);
+  RcvVarLen       int(10) const;
+  Format          char(8) const;
+  Profile         char(10);
+  ApiError        likeds(ApiError);
+end-pr RtvEncUsrPwd;
+
+// get profile handle
+dcl-pr GetProfileHandle extpgm('QSYGETPH');
+  UserProfile    char(10) const;
+  Password       char(32767) options(*varsize) const;
+  Profilehandle  char(12);
+  ApiError       likeds(ApiError);
+  PasswordLength Int(10) const;
+  PasswordCCSID  Int(10) const;
+end-pr GetProfileHandle;
+
+
+///
+// Check encrypted password
+//
+///
+dcl-pr CheckEncryptedUserPassword ExtPgm('QSYCUPWD');
+  ReturnCode      char(1);
+  InputVar        char(1000) const;
+  Format          char(8) const;
+  ApiError        likeds(ApiError);
+end-pr CheckEncryptedUserPassword;
+
+// Generate Elliptic Curve Diffie-Hellman Key Pair
+dcl-pr Qc3GenECDHKeyPair extproc('Qc3GenECDHKeyPair');
+  DomainParameter                           char(32767) options(*varsize) const;
+  DomainParameterLen                        int(10)     const;
+  AlgorithmType                             int(10)     const;
+  CryptographicServiceProvider              char(1)     const;
+  CryptographicDeviceName                   char(10)    const;
+  ECDHAlgorithmContextToken                 char(8)     const;
+  ECDHPublicKey                             char(32767) options(*varsize);
+  LengthOfAreaProvidedForECDHPublicKey      int(10) const;
+  LengthOfECDHPublicKeyReturned             int(10);
+  ApiError                                  likeds(ApiError);
+end-pr Qc3GenECDHKeyPair;
+
+
+// Generate ECC Key Pair
+dcl-pr Qc3GenECCKeyPair extproc('Qc3GenECCKeyPair');
+  DomainParameter                           char(32767) options(*varsize) const;
+  DomainParameterLen                        int(10)     const;
+  KeyType                                   int(10)     const;
+  KeyFormat                                 char(1)     const;
+  KeyForm                                   char(1)     const;
+  KeyEncryptingKey                          char(32767) options(*varsize) const;
+  KeyEncryptingAlgorithm                    char(8)     const;
+  CryptographicServiceProvider              char(1)     const;
+  CryptographicDeviceName                   char(10)    const;
+  PrivateKeyString                          char(32767) options(*varsize) ;
+  LengthOfAreaProvidedForPrivateKeyString   int(10) const;
+  LengthOfPrivateKeyStringReturned          int(10);
+  PublicKeyString                           char(32767) options(*varsize);
+  LengthOfAreaProvidedForPublicKeyString    int(10) const;
+  LengthOfPublicKeyStringReturned           int(10);
+  ApiError                                  likeds(ApiError);
+end-pr Qc3GenECCKeyPair;
+
+// Generate PKA Key Pair
+dcl-pr Qc3GenPKAKeyPair extproc('Qc3GenPKAKeyPair');
+  KeyType                                   int(10)     const;
+  KeySize                                   int(10)     const;
+  PublicKeyExponent                         int(10)     const;
+  KeyFormat                                 char(1)     const;
+  KeyForm                                   char(1)     const;
+  KeyEncryptingKey                          char(32767) options(*varsize) const;
+  KeyEncryptingAlgorithm                    char(8)     const;
+  CryptographicServiceProvider              char(1)     const;
+  CryptographicDeviceName                   char(10)    const;
+  PrivateKeyString                          char(2400)  ccsid(*hex);
+  LengthOfAreaProvidedForPrivateKeyString   int(10)     const;
+  LengthOfPrivateKeyStringReturned          int(10);
+  PublicKeyString                           char(512)   ccsid(*hex);
+  LengthOfAreaProvidedForPublicKeyString    int(10)     const;
+  LengthOfPublicKeyStringReturned           int(10);
+  ApiError                                  likeds(ApiError);
+end-pr Qc3GenPKAKeyPair;
+
+// Extract Public Key Qc3ExtractPublicKey
+dcl-pr Qc3ExtractPublicKey ExtProc('Qc3ExtractPublicKey');
+  KeyString                                 char(32767) options(*varsize) const;
+  KeyStringLen                              int(10) const;
+  KeyStringFormat                           char(8) const;
+  KeyForm                                   char(1) const;
+  KeyEncryptedKey                           char(32767) options(*varsize) const;
+  KeyEncryptionalgoritm                     char(8) const;
+  PublicKey                                 char(32767) options(*varsize);
+  LengthOfAreaProvidedForPublicKeyString    int(10)     const;
+  LengthOfPublicKeyStringReturned           int(10);
+  ApiError                                  likeds(ApiError);
+end-pr Qc3ExtractPublicKey;
+
+// Export Key Qc3ExportKey
+dcl-pr Qc3ExportKey ExtProc('Qc3ExportKey');
+  KeyString                           char(32767) options(*varsize) const;
+  KeyStringLen                        int(10) const;
+  KeyStringFormat                     char(1) const;
+  KeyEncryptingKeyContextToken        char(8) const;
+  KeyEncryptingAlgorithmContextToken  char(8) const;
+  ExportedKey                         char(32767) options(*varsize);
+  LengthOfAreaProvidedForExportedKey  int(10) const;
+  LengthOfExportedKeyReturned         int(10);
+  ApiError                            likeds(ApiError);
+end-pr Qc3ExportKey;
+
+// Create Key Context
+dcl-pr Qc3CreateKeyContext ExtProc('Qc3CreateKeyContext');
+  KeyString                         char(32767) options(*varsize) const;
+  LengthOfKeyString                 int(10) const;
+  KeyFormat                         char(1) const;
+  KeyType                           int(10) const;
+  KeyForm                           char(1) const;
+  KeyEncryptingKey                  char(32767) options(*varsize :*omit) const;
+  KeyEncryptingAlgorithm            char(8)     options(*omit) const;
+  KeyContextToken                   char(8);
+  ApiError                          likeds(ApiError);
+end-pr Qc3CreateKeyContext;
+
+// Create Algorithm Context
+dcl-pr Qc3CreateAlgorithmContext ExtProc('Qc3CreateAlgorithmContext');
+  AlgorithmDescription              char(32767) options(*varsize) const;
+  AlgorithmDescriptionFormatName    char(8) const;
+  AlgorithmContextToken             char(8);
+  ApiError                          likeds(ApiError);
+end-pr Qc3CreateAlgorithmContext;
+
+
+// Calculate signature
+dcl-pr Qc3CalculateSignature ExtProc('Qc3CalculateSignature');
+  InputData                         char(32767) options(*varsize) ccsid(*hex) const;
+  InputDataLength                   int(10)     const;
+  InputDataFormatName               char(8)     const;
+  AlgorithmDescription              char(32767) options(*varsize :*omit) const;
+  AlgorithmDescriptionFormatName    char(8)     const;
+  KeyDescription                    char(32767) options(*varsize :*omit) const;
+  KeyDescriptionFormatName          char(8)     const;
+  CryptographicServiceProvider      char(1)     const;
+  CryptographicDeviceName           char(10)    const;
+  Signature                         char(32767) options(*varsize) ccsid(*hex);
+  LengthOfAreaProvidedForSignature  int(10)     const;
+  LengthOfSignatureReturned         int(10);
+  ApiError                          likeds(ApiError);
+end-pr Qc3CalculateSignature;
+
+// validate signature
+dcl-pr Qc3VerifySignature ExtProc('Qc3VerifySignature');
+  Signature                         char(4096) ccsid(*hex) const; // fingerprInt
+  SignatureLen                      int(10) const;
+  Data                              char(8000) ccsid(*utf8) const; // original data
+  Datalen                           int(10) const;
+  Dataformat                        char(8) const;    //DATA0100 = data directly
+  // encryption algo -> RSA
+  Algo                              char(32767) options(*varsize :*omit) const;
+  AlgoFormat                        char(8) const;    //ALGD0400 = key parameters
+  // content of PEM certificate
+  Key                               char(32767) options(*varsize :*omit) const;
+  KeyFormat                         char(8) const;    //KEYD0600 = use key from PEM
+  CryptographicServiceProvider      char(1)     const;
+  CryptographicDeviceName           char(10) const;   // blank if no co-processor
+  ApiError                          likeds(ApiError);
+end-pr Qc3VerifySignature;
+
+// Decrypt data
+dcl-pr Qc3DecryptData ExtProc('Qc3DecryptData');
+  EncryptedData                     char(32767) options(*varsize :*omit) const;
+  LengthOfEncryptedData             int(10)     const;
+  AlgorithmDescription              char(32767) options(*varsize :*omit) const;
+  AlgorithmDescriptionFormatName    char(8)     const;
+  KeyDescription                    char(32767) options(*varsize :*omit) const;
+  KeyDescriptionFormatName          char(8)     const;
+  CryptographicServiceProvider      char(1)     const;
+  CryptographicDeviceName           char(10)    const;
+  ClearData                         char(32767) options(*varsize);
+  LengthOfAreaProvidedForClearData  int(10)     const;
+  LengthOfClearDataReturned         int(10);
+  ApiError                          likeds(ApiError);
+end-pr Qc3DecryptData;
+
+
+
+// QsoRtvTLSA
+// Retrieve TLS Attributes
+dcl-pr QsoRtvTLSA extproc('QsoRtvTLSA');
+  FormatName          char(8)     const;
+  ReceiverVariabile   char(32767) options(*varsize);
+  ReceiverLength      int(10);
+  ApiError            likeds(ApiError);
+end-pr QsoRtvTLSA;
+
+// Type definition for the TLSA0100 format of the receiver variable.
+//  *******************************************************************
+//  @A1C
+dcl-ds QSOA0100;                              // QsoRtvTLSA TLSA0100
+  QSOSPL         Uns(3)     pos(1) dIM(10);   // Supported protocols
+  QSOSPC         Uns(10)    pos(21);          // Number of supported protocols
+  QSOEDPL        Uns(5)     pos(25) dIM(10);  // Elig def protos
+  QSOEDPC        Uns(10)    pos(45);          // Number elig def protos
+  QSODPL         Uns(5)     pos(49) dIM(10);  // Default protocols
+  QSODPC         Uns(10)    pos(69);          // Number of default protocols
+  QSOSCL         Uns(5)     pos(73) dIM(64);  // Supported cipher suites
+  QSOSCC         Uns(10)    pos(201);         // Number of supported cipher suites
+  QSOEDCL        Uns(5)     pos(205) dIM(64); // Elig def ciphers
+  QSOEDCC        Uns(10)    pos(333);         // Numberelig def ciphers
+  QSODCL         Uns(5)     pos(337) dIM(64); //  Default cipher suites
+  QSODCC         Uns(10)    pos(465);         // Number of default cipher suites
+  QSOSSAL        Uns(5)     pos(469) dIM(32); // Supported sig alg list
+  QSOSSAC        Uns(10)    pos(533);         //  Number of supported sig algs
+  QSODSAL        Uns(5)     pos(537) dIM(32); // Default sig alg list
+  QSODSAC        Uns(10)    pos(601);         // Number of default sig algs
+  QSOSSACL       Uns(5)     pos(605) dIM(32); // Supsig alg cert list
+  QSOSSACC       Uns(10)    pos(669);         // Number of sup sig alg certs
+  QSODSACL       Uns(5)     pos(673) dIM(32); // Def sig alg cert list
+  QSODSACC       Uns(10)    pos(737);         // Number of default sig alg certs
+  QSOSNCL        Uns(5)     pos(741) dIM(32); // Supported named curves
+  QSOSNCC        Uns(10)    pos(805);         // Number supported named curves
+  QSODNCL        Uns(5)     pos(809) dIM(32); // Default named curves
+  QSODNCC        Uns(10)    pos(873);         // Number of def ault named curves
+  QSOMRKS        Uns(10)    pos(877);         // Default minimum RSA key size
+  QSOTRT         Uns(10)    pos(881);         // TLS renegotiation without RFC5746
+  QSOV2HSC       Uns(10)    pos(885);         // SSLv2 handshake connection count
+  QSOV3HSC       Uns(10)    pos(889);         // SSLv3 handshake connection count
+  QSO10HSC       Uns(10)    pos(893);         // TLSv10 handshake connection count
+  QSO11HSC       Uns(10)    pos(897);         // TLSv11 handshake connection count
+  QSO12HSC       Uns(10)    pos(901);         // TLSv12 handshake connection count
+  QSO13HSC       Uns(10)    pos(905);         // TLSv13 handshake connection count
+  QSOOCR         Uns(10)    pos(909);         // OCSP certificate revocation check @A2A
+  QSORSV1        Uns(5)     pos(913) dIM(16); // Reserved
+  QSOBITS        char(4)    pos(977);
+end-ds;
+
+
+dcl-ds My_Key_t qualified inz;
+  Type      int(10);
+  Len       int(10);
+  Fmt       char(1) inz('0');
+  *N        char(3);
+  Value     char(100) ccsid(*utf8);
+end-ds My_Key_t;
+
+dcl-ds algd0500_t qualified template inz;
+  HashAlg   int(10);
+end-ds algd0500_t;
+
+dcl-ds ApiError qualified inz;
+  BytPrv    int(10) inz(%Size(ApiError));
+  BytAvl    int(10) inz(0);
+  MsgId     char(7);
+  *n        char(1);
+  MsgDta    char(128);
+end-ds ApiError;
+
+dcl-ds DsHash qualified;
+  *n    char(11) inz('HS2563HMAC ');
+  *n    char(11) inz('HS3843HMAC ');
+  *n    char(11) inz('HS5123HMAC ');
+  *n    char(11) inz('RS2563RSA  ');
+  *n    char(11) inz('RS3844RSA  ');
+  *n    char(11) inz('RS5125RSA  ');
+  *n    char(11) inz('ES2563ECDSA');
+  *n    char(11) inz('ES3844ECDSA');
+  *n    char(11) inz('ES5125ECDSA');
+  dcl-ds Arr dim(7) pos(1);
+    AlgD                    char(5);
+    SigningHashAlgorithm    zoned(1);
+    AlgType                 char(5);
+  end-ds Arr;
+end-ds DsHash;
+
+dcl-ds DsSignature_t qualified template inz;
+  Rc              int(10);
+  Signature       char(1000) ccsid(*hex);
+  SignatureLen    int(10);
+end-ds DsSignature_t;
+
+// Record structure for UPWD0100 format
+dcl-ds QSyd0100 qualified inz;    // Qsy RUPWD UPWD0100
+  QSYBRTN04 int(10)   pos(1); // Bytes Returned
+  QSYBAVL04 int(10)   pos(5); // Bytes Available
+  QSYPN06   char(10)  pos(9); // Profile Name
+  QSYEP     char(3000);       // Passwod Cryptata
+end-ds QSyd0100;
+
+dcl-ds KeyD0200_t qualified template inz;
+  KeyType                int(10);
+  KeyStringLen           int(10);
+  KeyFormat              char(1);
+  Reserved               char(3);
+  KeyString              char(2400) ccsid(*hex);
+end-ds KeyD0200_t;
+
+dcl-ds AlgD0400_t qualified template inz;
+  PublicKeyAlgorithm        int(10);
+  PKABlockFormat            char(1);
+  Reserved                  char(3) inz(X'000000');
+  SigningHashAlgorithm      int(10);
+end-ds AlgD0400_t;
+
+dcl-ds AlgD0100_t qualified template inz;
+  AlgorithmContextToken     char(8);
+  FinalOperationFlag        char(1);
+end-ds AlgD0100_t;
+
+dcl-ds AlgD0600_t qualified template inz;
+  EllipticCurvePublicKeyAlgorithm  int(10);
+  Reserved                         char(4) inz(X'00');
+  SigningHashAlgorithm             int(10);
+  DomainParametersLength           int(10) inz(0);
+  DomainParameters                 char(100);
+end-ds AlgD0600_t;
+
+dcl-ds DsKey_t qualified template inz;
+  Rc                int(10);
+  Private           char(2400) ccsid(*hex);
+  PrivateKeyLength  int(10);
+  Public            char(512) ccsid(*hex);
+  PublicKeyLength   int(10);
+end-ds DsKey_t;
+
+dcl-ds DsJwt_t qualified template;
+  Rc      int(10);
+  Jwt     like(Utf8String_t);
+end-ds DsJwt_t;
+
+dcl-ds DsEnc_t qualified template;
+  Rc                int(10);
+  StringEncoded     like(Utf8String_t);
+end-ds DsEnc_t;
+
+dcl-ds DsDec_t qualified template;
+  Rc                int(10);
+  StringDecodedHex  varchar(2000) ccsid(*hex);
+end-ds DsDec_t;
+
+dcl-ds DsCheckUser_t qualified template;
+  Rc                int(10);
+  ErrorMessage      varchar(100);
+end-ds DsCheckUser_t;
+
+dcl-s OutputkeyVar_t       varchar(5000) template;
+dcl-s Utf8String_t         varchar(5000) ccsid(*utf8) template;
+dcl-s PUNTO                char(1) inz('.') Ccsid(*utf8);
+
+
+dcl-s NullPointer          Pointer inz(*null);
+
+dcl-c UPWD0100_FMT         'UPWD0100';
+dcl-c DATA0100_FMT         'DATA0100';
+dcl-c KEYD0200_FMT         'KEYD0200';
+dcl-c KEYD0100_FMT         'KEYD0100';
+dcl-c ALGD0100_FMT         'ALGD0100';
+dcl-c ALGD0400_FMT         'ALGD0400';
+dcl-c ALGD0500_FMT         'ALGD0500';
+dcl-c ALGD0600_FMT         'ALGD0600';
+dcl-c MD5		               'MD5';
+dcl-c SHA1                 'SHA1';
+dcl-c RS256                'RS256';
+dcl-c ES256                'ES256';
+dcl-c RSA                  'RSA';
+dcl-c EDCSA                'ECDSA';
+dcl-c HMAC                 'HMAC';
+dcl-c KEYTYPERSA           50;
+dcl-c KEYSIZE4096          4096;
+dcl-c KEYSIZE2048          2048;
+dcl-c PUBLICKEYEXP65537    65537;
+dcl-c PUBLICKEYEXP3        3;
+dcl-c BERSTRING            '1';
+dcl-c KEYFORMCLEAR         '0';
+dcl-c KEYFORMENCRYPTED     '1';
+// Software CSP. The system will perform the PKA key pair generation using software.
+dcl-c ANYCSP               '0';
+dcl-c SOFTWARECSP          '1';
+dcl-c ECC                  56;
+// dcl-c ES256                      'id-ecdsa-with-sha3-256 ::= { sigAlgs 10 }';
+// dcl-c ES256                      'brainpoolP256r1';
+// dcl-c ES256                      'P-256';
+dcl-c SECP256R1            'Secp256r1';
+
+dcl-c SHA256               3;
+dcl-c SHA384               4;
+dcl-c SHA512               5;
+dcl-c SHA3_256             9;
+dcl-c PKCS1                '1';
+dcl-c PEMCERTIFICATE       '6';
+dcl-c FINAL                '1';
+dcl-c CONTINUE             '0';
+dcl-c BINARYSTRING         '0';
+dcl-s CRLF                 char(2) inz(X'0D0A') ccsid(*utf8);
+dcl-c BEGINCERTPRIVATE     '-----BEGIN RSA PRIVATE KEY-----';
+dcl-c BEGINCERTPUBLIC      '-----BEGIN PUBLIC KEY-----';
+dcl-c ENDCERTPUBLIC        '-----END PUBLIC KEY-----';
+dcl-c ENDCERTPRIVATE       '-----END RSA PRIVATE KEY-----';
+dcl-c PEMRECORDLENGTH      64;
+
+dcl-c RSAPRIVATE                      51;
+dcl-c ECCPRIVATE                      57;
+dcl-c RSAPUBLICKEYALGORITHM           50;
+dcl-c ELLIPTICCURVEPUBLICKEYALGORITHM 55;
